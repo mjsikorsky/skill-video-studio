@@ -35,6 +35,7 @@ def load(path):
         d = np.interp(np.arange(int(len(d) * SR / sr)) / SR, np.arange(len(d)) / sr, d)
     return d
 
+assert len(SPOKEN) == 5, "this timing model is 5-beat: title / 3 chapters / CTA"
 vos = [load(f"vo{i}.wav") for i in range(1, 6)]
 dur = [len(v) / SR for v in vos]
 
@@ -50,6 +51,18 @@ p5 = cta_start + 0.2
 cta_dur = 0.2 + dur[4] + 0.5
 total = cta_start + cta_dur
 starts = [p1, p2, p3, p4, p5]
+
+# The voice must FIT: overlapping lines are summed into one garbled voice.wav, so stop here instead.
+# A slower voice (see scripts/variant.sh) is the usual cause: shorten a line or lengthen the footage.
+for i in range(len(starts) - 1):
+    end = starts[i] + dur[i]
+    if end > starts[i + 1]:
+        sys.exit(f"narrate: line {i + 1} ends at {end:.2f}s, after line {i + 2} starts at "
+                 f"{starts[i + 1]:.2f}s — shorten line {i + 1} or give its beat more time")
+for i in (1, 2):
+    if starts[i] + dur[i] > foot_end:
+        print(f"narrate: WARNING line {i + 1} runs past the footage ({starts[i] + dur[i]:.2f}s > "
+              f"{foot_end:.2f}s)", file=sys.stderr)
 
 # voice track (stereo, silence with each line placed at its start)
 N = int(total * SR)

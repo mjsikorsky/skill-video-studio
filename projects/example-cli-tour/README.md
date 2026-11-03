@@ -24,7 +24,7 @@ VHS, no live model, no PII, pixel-perfect and re-timable. The browser beat reuse
 S=.claude/skills/devrel-video
 
 # 1. browser beat — serve the shared Acme mock app and capture it
-python3 -m http.server 8000 --directory projects/example-walkthrough/site &
+python3 -m http.server 8000 --bind 127.0.0.1 --directory projects/example-walkthrough/site &
 $S/scripts/capture.sh projects/example-cli-tour/capture.js "http://localhost:8000/"
 kill %1
 

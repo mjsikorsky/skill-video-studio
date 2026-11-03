@@ -1,7 +1,7 @@
 # Production notes
 
 Hard-won environment facts and the roadmap. The full design rationale is in the repo-root guide
-(`local-devrel-video-studio-guide.md`, v1.2).
+(`docs/local-devrel-video-studio-guide.md`, v1.2).
 
 ## Environment gotchas (verified on Ubuntu 26.04, Node 24, ffmpeg 8)
 
@@ -78,7 +78,8 @@ Each has a commented seam in `templates/composition.html` and a field in `brief.
    iGPU) → `HIP_VISIBLE_DEVICES=1` (NVIDIA hosts use `CUDA_VISIBLE_DEVICES` instead); (c) 256 inference peaks
    ~14 GB → avatar.sh frees idle model-server VRAM, but another model server can reload mid-run → for a clean run
    stop it (e.g. `sudo systemctl stop ollama`; the TTS server is separate, unaffected) and restart
-   after; (d) **SSH to the GPU host can be flaky** → avatar.sh ships its remote script as a *file* (scp, integrity-checked),
+   after — `variant.sh` does this only with `AVATAR_STOP_OLLAMA=1`, and restarts it even if the lip-sync fails;
+   `AVATAR_FREE_VRAM=0` skips unloading idle models; each run stages in a private `mktemp -d` dir that is removed on exit; (d) **SSH to the GPU host can be flaky** → avatar.sh ships its remote script as a *file* (scp, integrity-checked),
    not piped over stdin. `STEPS=30` (env) for a crisper mouth; brighten a backlit plate (`ffmpeg eq`). ~10 min/clip
    cold. Plate must be ≥ the line (no auto-loop). Reference env: LatentSync 1.5 ckpt + a torch build for your GPU
    (the AMD box used 2.9.1+rocm6.4); set `AVATAR_HOST`/`LS_DIR` (see `scripts/_env.sh`). **Privacy + consent:** use only a face you have rights to; `<plate>` is
@@ -117,7 +118,7 @@ Each has a commented seam in `templates/composition.html` and a field in `brief.
      non-composition preview: `scripts/stitch-envs.sh out.mp4 0b1020 term1.mp4 capture.mp4 term2.mp4`. Worked
      example of the re-enactment beat: `templates/cc-terminal.html`. Match VHS `Set Width/Height` to the browser viewport (1600×900) so
      beats stitch without letterboxing.
-   - **Tooling (one-time, `scripts/capture-terminal.sh` self-installs vhs+ttyd):** `go install github.com/charmbracelet/vhs@latest`;
+   - **Tooling (one-time, `scripts/capture-terminal.sh` self-installs vhs+ttyd):** `go install github.com/charmbracelet/vhs@$VHS_VERSION` (pinned in `scripts/_versions.sh`);
      ttyd static binary from `tsl0922/ttyd` releases; ffmpeg (present). Free-form path: `asciinema` (pip) + `agg`
      (`cargo install --git https://github.com/asciinema/agg agg`, needs rustc ≥1.86 — use `+stable` if your default is older).
 

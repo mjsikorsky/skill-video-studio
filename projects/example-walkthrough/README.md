@@ -21,7 +21,7 @@ product URL and the brand, and you have your own video.
 S=.claude/skills/devrel-video
 
 # 1. serve the mock app, then capture the live flow (3 beats: workspace → filter by category → open a project)
-python3 -m http.server 8000 --directory projects/example-walkthrough/site &
+python3 -m http.server 8000 --bind 127.0.0.1 --directory projects/example-walkthrough/site &
 $S/scripts/capture.sh projects/example-walkthrough/capture.js "http://localhost:8000/"
 kill %1   # stop the server
 

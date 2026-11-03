@@ -28,12 +28,20 @@ PLATE="${1:?plate}"; AUDIO="${2:?audio.wav}"; OUT="${3:?out.mp4}"; FACE_SCALE="$
 STEPS="${STEPS:-20}"          # LatentSync diffusion steps; raise (e.g. 30) for a crisper mouth
 HOST="${AVATAR_HOST:?set AVATAR_HOST to the ssh target with a LatentSync checkout (see scripts/_env.sh)}"
 LS_DIR="${LS_DIR:?set LS_DIR to the LatentSync checkout path on $HOST (see scripts/_env.sh)}"
-REMOTE="/tmp/devrel-avatar"
 SSHO=(-o ConnectTimeout=120 -o ServerAliveInterval=15 -o ServerAliveCountMax=8 -o BatchMode=yes)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "[avatar] staging inputs on $HOST…"
-ssh "${SSHO[@]}" "$HOST" "mkdir -p $REMOTE"
+# A private, per-run staging dir: the plate is a private recording, and a fixed shared path would let
+# concurrent runs overwrite each other and other users on the host read it. Removed on exit
+# (set AVATAR_KEEP_REMOTE=1 to keep it for debugging).
+REMOTE="$(ssh "${SSHO[@]}" "$HOST" 'umask 077; mktemp -d "${TMPDIR:-/tmp}/devrel-avatar.XXXXXX"')"
+[ -n "$REMOTE" ] || { echo "[avatar] could not create a staging dir on $HOST" >&2; exit 1; }
+cleanup_remote() {
+  if [ "${AVATAR_KEEP_REMOTE:-0}" = 1 ]; then echo "[avatar] kept $HOST:$REMOTE"; return; fi
+  ssh "${SSHO[@]}" "$HOST" "rm -rf $(printf %q "$REMOTE")" >/dev/null 2>&1 || true
+}
+trap cleanup_remote EXIT
 if [[ "$PLATE" == remote:* ]]; then
   RPLATE="${PLATE#remote:}"
 else
@@ -48,13 +56,17 @@ echo "[avatar] lip-sync + face-crop on $HOST (this is the slow GPU step, ~10 min
 REMOTE_SH="$(mktemp)"
 cat > "$REMOTE_SH" <<'REMOTE_EOF'
 set -euo pipefail
-cd "$(eval echo "$LS_DIR")"
+# LS_DIR may carry a literal ~ or $HOME (see scripts/_env.sh); expand just those, never eval.
+LS="${LS_DIR/#\~/$HOME}"; LS="${LS/#\$HOME/$HOME}"
+cd "$LS"
 export HIP_VISIBLE_DEVICES=1 HF_HUB_DISABLE_TELEMETRY=1
 export PYTORCH_ALLOC_CONF=expandable_segments:True PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-# free VRAM without touching other services (if a model server holds the GPU, stop it right before we grab VRAM)
-for m in $(ollama ps 2>/dev/null | awk 'NR>1{print $1}'); do ollama stop "$m" >/dev/null 2>&1 || true; done
-sleep 2
+# free VRAM by unloading idle ollama models (the service keeps running); AVATAR_FREE_VRAM=0 skips this
+if [ "${AVATAR_FREE_VRAM:-1}" = 1 ] && command -v ollama >/dev/null 2>&1; then
+  for m in $(ollama ps 2>/dev/null | awk 'NR>1{print $1}'); do ollama stop "$m" >/dev/null 2>&1 || true; done
+  sleep 2
+fi
 
 # LatentSync is a 25fps model (stage2.yaml video_fps:25; feature2chunks maps whisper at 25fps).
 # A plate at any other fps makes the mouth drift against the audio → normalize to 25fps first.
@@ -80,7 +92,10 @@ echo "[avatar] done $(ls -lh "$REMOTE/avatar-face.mp4" | awk '{print $5}')"
 REMOTE_EOF
 scp "${SSHO[@]}" "$REMOTE_SH" "$HOST:$REMOTE/remote.sh"
 rm -f "$REMOTE_SH"
-ssh "${SSHO[@]}" "$HOST" "FACE_SCALE='$FACE_SCALE' STEPS='$STEPS' LS_DIR='$LS_DIR' REMOTE='$REMOTE' RPLATE='$RPLATE' bash '$REMOTE/remote.sh'"
+# %q-quote every value so paths with spaces or quotes survive the remote shell.
+REMOTE_ENV="$(printf 'FACE_SCALE=%q STEPS=%q LS_DIR=%q REMOTE=%q RPLATE=%q AVATAR_FREE_VRAM=%q' \
+  "$FACE_SCALE" "$STEPS" "$LS_DIR" "$REMOTE" "$RPLATE" "${AVATAR_FREE_VRAM:-1}")"
+ssh "${SSHO[@]}" "$HOST" "$REMOTE_ENV bash $(printf %q "$REMOTE/remote.sh")"
 
 echo "[avatar] pulling result back…"
 scp "${SSHO[@]}" "$HOST:$REMOTE/avatar-face.mp4" "$OUT"

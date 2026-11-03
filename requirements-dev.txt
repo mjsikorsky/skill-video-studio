@@ -1,2 +1,3 @@
 PyYAML==6.0.3
 numpy>=2,<3
+shellcheck-py==0.11.0.1

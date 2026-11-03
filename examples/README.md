@@ -23,7 +23,7 @@ Needs Python 3.10+, Git, authenticated Claude Code, [VHS with ttyd/ffmpeg](https
 python3 examples/record_demo.py
 ```
 
-The helper uses an isolated temporary project, records a real clone and harness invocation, then copies the finished GIF and actual generated brief back only after success. Use `--out /tmp/demo.gif --brief-out /tmp/brief.yaml` to choose other outputs.
+The helper uses an isolated temporary project, records a real clone and harness invocation, then copies the finished GIF and actual generated brief back only after success. Use `--out /tmp/demo.gif --brief-out /tmp/brief.yaml` to choose other outputs. The recording clones the upstream repository shown on screen, not your local checkout; to record a published fork, pass `--repo https://github.com/<owner>/skill-video-studio`.
 
 The helper loads only its session settings, disables optional hooks, excludes configured MCP servers, and permits file/skill tools only; it does not give Claude a shell/browser tool or bypass permissions. It leaves global settings unchanged. The visible `claude` command applies that configuration through a session-local shell function.
 

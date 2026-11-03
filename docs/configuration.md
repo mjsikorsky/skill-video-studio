@@ -25,6 +25,11 @@ The scripts source `DEVREL_VIDEO_ENV` if provided, otherwise `~/.config/devrel-v
 | `ORPHEUS_URL` | Your compatible narration endpoint |
 | `ORPHEUS_KEY`, `ORPHEUS_MODEL` | Optional endpoint token/model settings |
 | `AVATAR_HOST`, `LS_DIR` | Your own SSH GPU host and LatentSync checkout |
+| `AVATAR_STOP_OLLAMA` | `1` lets `variant.sh` stop the `ollama` service on the GPU host (via `sudo`) during lip-sync and restart it afterwards; off by default |
+| `AVATAR_FREE_VRAM` | `0` stops `avatar.sh` from unloading idle `ollama` models on the GPU host; default `1` |
+| `AVATAR_KEEP_REMOTE` | `1` keeps the per-run staging folder on the GPU host for debugging; it is removed by default |
+| `THUMB_PORT` | Fixed loopback port for `thumbnail.sh`; a free port is chosen by default |
+| `HYPERFRAMES_VERSION`, `PLAYWRIGHT_CLI_VERSION`, `VHS_VERSION`, `TTYD_VERSION` | Override a [pinned tool version](../.claude/skills/devrel-video/scripts/_versions.sh) |
 | `BGM_STYLE` | Local music style; default `corporate` |
 
 Silent browser walkthroughs do not need narration credentials or a GPU host. Optional services may incur costs according to your own setup. No provider account or service is provisioned by cloning this repo.

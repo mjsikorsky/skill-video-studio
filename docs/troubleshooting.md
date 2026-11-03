@@ -13,4 +13,4 @@
 | New project does not show up in Git | Local projects are ignored by default; publish only reviewed, sanitized sources via the allowlist. |
 | A generated MP4 or audio file is missing from a clone | Media build outputs are ignored; regenerate them from the included source. |
 
-The [production notes](../.claude/skills/devrel-video/references/production-notes.md) and original [studio guide](../local-devrel-video-studio-guide.md) contain the detailed environment findings. The original guides describe their development environment and include optional integrations; a documentation check is not a full render test.
+The [production notes](../.claude/skills/devrel-video/references/production-notes.md) and original [studio guide](local-devrel-video-studio-guide.md) contain the detailed environment findings. The original guides describe their development environment and include optional integrations; a documentation check is not a full render test.

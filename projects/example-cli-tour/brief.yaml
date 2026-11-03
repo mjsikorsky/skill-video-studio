@@ -11,7 +11,7 @@ brand: acme
 
 capture:
   url: "http://localhost:8000/"   # the Acme mock app (reused from ../example-walkthrough/site)
-  start_command: "python3 -m http.server 8000 --directory projects/example-walkthrough/site"
+  start_command: "python3 -m http.server 8000 --bind 127.0.0.1 --directory projects/example-walkthrough/site"
   viewport: "1600x900"
   url_label: "acme.com"
 

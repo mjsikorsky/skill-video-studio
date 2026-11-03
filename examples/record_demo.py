@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Record real studio installation and Claude Code brief creation; no capture/render."""
 
 import argparse
@@ -8,9 +9,10 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
+UPSTREAM = "https://github.com/aaitor/skill-video-studio"
 
 
-def prepare(workspace):
+def prepare(workspace, repo=UPSTREAM):
     (workspace / "recording-settings.json").write_text(
         json.dumps(
             {
@@ -32,20 +34,33 @@ def prepare(workspace):
         '"$@" 2>../claude-demo.log; }\n'
     )
     shutil.copy2(ROOT / "examples/theme.tape", workspace / "theme.tape")
-    shutil.copy2(ROOT / "examples/demo.tape", workspace / "demo.tape")
+    tape = (ROOT / "examples/demo.tape").read_text()
+    clone = f'Type "git clone {UPSTREAM} studio"'
+    if clone not in tape:
+        raise RuntimeError("examples/demo.tape no longer contains the expected clone command.")
+    # The recording clones a published repository, not this checkout; --repo records a fork instead.
+    (workspace / "demo.tape").write_text(tape.replace(clone, f'Type "git clone {repo} studio"'))
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=ROOT / "assets/terminal-demo.gif")
     parser.add_argument("--brief-out", type=Path, default=ROOT / "examples/recorded-brief.yaml")
+    parser.add_argument(
+        "--repo",
+        default=UPSTREAM,
+        help="public repository URL the recording clones (default: upstream). The URL is shown on screen, "
+        "so use a published fork, not a local path.",
+    )
     args = parser.parse_args()
+    if '"' in args.repo or "://" not in args.repo:
+        parser.error("--repo must be a plain https:// repository URL; it is typed on screen.")
     for command in ["git", "claude", "vhs", "ttyd", "ffmpeg"]:
         if not shutil.which(command):
             parser.error(f"{command} must be installed and available on PATH.")
     with tempfile.TemporaryDirectory(prefix="devrel-claude-recording-") as temporary:
         workspace = Path(temporary)
-        prepare(workspace)
+        prepare(workspace, args.repo)
         print("Recording actual studio installation and brief creation; no capture or render.", flush=True)
         subprocess.run(["vhs", "demo.tape"], cwd=workspace, check=True)
         brief = workspace / "studio/projects/demo/brief.yaml"

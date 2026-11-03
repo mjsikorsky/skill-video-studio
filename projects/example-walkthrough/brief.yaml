@@ -11,7 +11,7 @@ brand: acme                   # brands/acme/ — the default placeholder brand (
 
 capture:
   url: "http://localhost:8000/"       # the self-contained Acme mock app in ./site/ (no login, no PII, no external deps)
-  start_command: "python3 -m http.server 8000 --directory projects/example-walkthrough/site"
+  start_command: "python3 -m http.server 8000 --bind 127.0.0.1 --directory projects/example-walkthrough/site"
   viewport: "1600x900"
   url_label: "acme.com"               # the frame shows the product's canonical domain (it IS the Acme app)
 
