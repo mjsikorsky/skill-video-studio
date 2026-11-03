@@ -11,4 +11,5 @@
 #
 # ponytail: no config framework — just source a dotfile if it exists. Env vars already set win.
 _cfg="${DEVREL_VIDEO_ENV:-$HOME/.config/devrel-video/env}"
+# shellcheck source=/dev/null  # a private, user-chosen file
 if [ -f "$_cfg" ]; then . "$_cfg"; fi   # `if` (not `&&`) so a missing file returns 0 under `set -e`

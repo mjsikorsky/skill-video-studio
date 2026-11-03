@@ -26,7 +26,7 @@ for i in "${!CLIPS[@]}"; do
   f="[$i:v]$NORM"
   [ "$i" -gt 0 ]      && f="$f,fade=t=in:st=0:d=$F:color=$COLOR"      # fade up from the colour
   [ "$i" -lt "$last" ] && f="$f,fade=t=out:st=$st:d=$F:color=$COLOR"  # fade down to the colour
-  filters+=("$f[v$i]"); labels+="[v$i]"
+  filters+=("${f}[v$i]"); labels+="[v$i]"
 done
 FC="$(IFS=';'; echo "${filters[*]}");${labels}concat=n=${#CLIPS[@]}:v=1:a=0[vout]"
 ffmpeg -v error -y "${inputs[@]}" -filter_complex "$FC" -map "[vout]" \

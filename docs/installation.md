@@ -31,9 +31,11 @@ Claude Code discovers the project skill. Ask `/devrel-video` to prepare a brief 
 | Python 3.10+ | Utility scripts and narration/timing helpers |
 | NumPy | The local background-music generator and some optional image/video helpers |
 
-The existing pipeline was developed on Linux. For the original environment commands and known platform constraints, see the [full setup guide](../local-devrel-video-studio-guide.md#5-initial-ubuntu-setup) and [production notes](../.claude/skills/devrel-video/references/production-notes.md). Review the commands for your machine rather than assuming a different distribution has the same packages.
+The existing pipeline was developed on Linux. For the original environment commands and known platform constraints, see the [full setup guide](local-devrel-video-studio-guide.md#5-initial-ubuntu-setup) and [production notes](../.claude/skills/devrel-video/references/production-notes.md). Review the commands for your machine rather than assuming a different distribution has the same packages.
 
-The capture wrapper installs Playwright CLI under `.pw/` if needed; it uses npm and may download packages/browsers. HyperFrames is invoked through `npx`. Install the browser and required system libraries before trying a full render. Optional HyperFrames/creative/media skills described in the guide are additional integrations, not bundled dependencies.
+The bundled scripts target Linux (x86_64 or aarch64) and avoid GNU-only flags where practical, but macOS is not a tested platform: install `ttyd` yourself (`brew install ttyd`) for terminal capture, and expect to adapt host-specific steps. Windows is not supported outside WSL.
+
+The capture wrapper installs Playwright CLI under `.pw/` if needed; it uses npm and may download packages/browsers. HyperFrames is invoked through `npx`. Tool versions (HyperFrames, Playwright CLI, VHS, ttyd) are pinned in [`scripts/_versions.sh`](../.claude/skills/devrel-video/scripts/_versions.sh) for reproducible renders; override one with its environment variable, such as `HYPERFRAMES_VERSION=…`, and bump the pin deliberately after a test render. Install the browser and required system libraries before trying a full render. Optional HyperFrames/creative/media skills described in the guide are additional integrations, not bundled dependencies.
 
 ## First full video
 

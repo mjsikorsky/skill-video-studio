@@ -104,7 +104,7 @@ docs/                       Onboarding, usage, configuration, troubleshooting
 - [Troubleshooting](docs/troubleshooting.md)
 - [Security, privacy, and media rights](docs/security-and-privacy.md)
 - [Banner generation and social preview](docs/branding.md)
-- Original references: [studio design guide](local-devrel-video-studio-guide.md) · [avatar guide](local-talking-video-avatar-guide.md)
+- Original references: [studio design guide](docs/local-devrel-video-studio-guide.md) · [avatar guide](docs/local-talking-video-avatar-guide.md)
 
 ## Contributing and support
 

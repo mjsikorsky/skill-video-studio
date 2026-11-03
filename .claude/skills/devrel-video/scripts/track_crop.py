@@ -43,10 +43,10 @@ def smooth(a, k):                                # light box filter: kill detect
     a = np.asarray(a, float)
     if len(a) < 3:
         return a
-    k = max(3, min(k, (len(a)//2)*2 + 1))
+    k = max(3, min(k | 1, (len(a)//2)*2 + 1))     # odd window: an even one shifts the track by half a frame
     return np.convolve(np.pad(a, k//2, mode="edge"), np.ones(k)/k, mode="valid")
 
-K = max(3, int(FPS * 0.25))                      # ~0.25s window → tight follow (pinned), minimal drift
+K = max(3, int(FPS * 0.25) | 1)                  # ~0.25s window → tight follow; odd so it stays centred
 cxs, cys, szs = smooth(cx, K), smooth(cy, K), smooth(sz, K)
 
 vw = cv2.VideoWriter(out, cv2.VideoWriter_fourcc(*"mp4v"), FPS, (512, 512))

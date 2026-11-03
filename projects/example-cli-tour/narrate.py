@@ -30,6 +30,13 @@ starts = [s for s, _ in LINES]
 vos = [load(f"vo{i}.wav") for i in range(1, len(LINES) + 1)]
 dur = [len(v) / SR for v in vos]
 
+# Lines are placed at fixed beats; a line longer than its slot would overlap the next one.
+for i in range(len(starts)):
+    end = starts[i] + dur[i]
+    nxt = starts[i + 1] if i + 1 < len(starts) else TOTAL
+    if end > nxt:
+        sys.exit(f"narrate: line {i + 1} ends at {end:.2f}s, past {nxt:.2f}s — shorten it or move the beat")
+
 N = int(TOTAL * SR)
 voice = np.zeros(N)
 for v, s in zip(vos, starts):
